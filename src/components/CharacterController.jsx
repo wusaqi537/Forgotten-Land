@@ -1,15 +1,12 @@
-import { CameraControls } from "@react-three/drei";
+import { CameraControls, Billboard, Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { useEffect, useRef, useState } from "react";
 import { NewCharacter } from "./Character";
+import * as THREE from "three";
 
 const MOVEMENT_SPEED = 120;
-export const WEAPON_OFFSET = {
-  x: -0.2,
-  y: 1.4,
-  z: 0.8,
-};
+const FIRE_RATE = 400;
 
 // 键盘控制状态
 const keyboardControls = {
@@ -20,8 +17,15 @@ const keyboardControls = {
   fire: false,
 };
 
+export const WEAPON_OFFSET = {
+  x: -0.2,
+  y: 1.4,
+  z: 0.8,
+};
+
 export const CharacterController = ({
   userPlayer = true,
+  onFire = () => {},
   downgradedPerformance,
   ...props
 }) => {
@@ -29,8 +33,8 @@ export const CharacterController = ({
   const character = useRef();
   const rigidbody = useRef();
   const [animation, setAnimation] = useState("Idle");
+  const lastShoot = useRef(0);
 
- 
   const [playerState, setPlayerState] = useState({
     health: 100,
     dead: false,
@@ -39,13 +43,11 @@ export const CharacterController = ({
     kills: 0,
   });
 
-
   const state = {
     state: playerState,
     setState: (key, value) =>
       setPlayerState((prev) => ({ ...prev, [key]: value })),
   };
-
 
   const joystick = {
     angle: () => null,
@@ -184,6 +186,21 @@ export const CharacterController = ({
       } else if (!joystick.isJoystickPressed()) {
         setAnimation("Idle");
       }
+
+      // 处理射击
+      if (keyboardControls.fire) {
+        setAnimation(moveX !== 0 || moveZ !== 0 ? "Run_Shoot" : "Idle_Shoot");
+        if (Date.now() - lastShoot.current > FIRE_RATE) {
+          lastShoot.current = Date.now();
+          const newBullet = {
+            id: "bullet-" + Date.now(),
+            position: vec3(rigidbody.current.translation()),
+            angle: character.current.rotation.y,
+            player: "player",
+          };
+          onFire(newBullet);
+        }
+      }
     }
 
     // 处理触摸输入
@@ -202,8 +219,6 @@ export const CharacterController = ({
     } else if (!keyboardControls.moveForward && !keyboardControls.moveBackward && !keyboardControls.moveLeft && !keyboardControls.moveRight) {
       setAnimation("Idle");
     }
-
-
   });
 
   const controls = useRef();
@@ -224,7 +239,26 @@ export const CharacterController = ({
         linearDamping={5}    // 线性阻尼
         lockRotations
         type="dynamic"
+        onIntersectionEnter={({ other }) => {
+          if (other.rigidBody.userData?.type === "magic" && state.state.health > 0) {
+            const newHealth = state.state.health - other.rigidBody.userData.damage;
+            if (newHealth <= 0) {
+              state.setState("dead", true);
+              state.setState("health", 0);
+              rigidbody.current.setEnabled(false);
+              setTimeout(() => {
+                rigidbody.current.setTranslation({ x: 0, y: 0, z: 60 });
+                rigidbody.current.setEnabled(true);
+                state.setState("health", 100);
+                state.setState("dead", false);
+              }, 2000);
+            } else {
+              state.setState("health", newHealth);
+            }
+          }
+        }}
       >
+        <PlayerInfo state={state.state} />
         <group ref={character}>
           <NewCharacter
             color={state.state.profile?.color}
@@ -252,5 +286,68 @@ export const CharacterController = ({
         <CapsuleCollider args={[0.7, 0.6]} position={[0, 1.28, 0]} />
       </RigidBody>
     </group>
+  );
+};
+
+const PlayerInfo = ({ state }) => {
+  const health = state.health;
+  const name = state.profile.name;
+  const [prevHealth, setPrevHealth] = useState(health);
+  const [isDamaged, setIsDamaged] = useState(false);
+
+  useEffect(() => {
+    if (health < prevHealth) {
+      setIsDamaged(true);
+      setTimeout(() => setIsDamaged(false), 500);
+    }
+    setPrevHealth(health);
+  }, [health]);
+
+  const getHealthColor = () => {
+    if (health > 70) return new THREE.Color(0.0, 1.0, 0.2);
+    if (health > 30) return new THREE.Color(1.0, 0.7, 0.0);
+    return new THREE.Color(1.0, 0.0, 0.0);
+  };
+
+  return (
+    <Billboard position-y={4}>
+      <Text position-y={0.36} fontSize={0.4}>
+        {name}
+        <meshBasicMaterial color={state.profile.color} />
+      </Text>
+      <mesh position-z={-0.1}>
+        <planeGeometry args={[1, 0.2]} />
+        <meshBasicMaterial color="black" transparent opacity={0.5} />
+      </mesh>
+      <mesh
+        scale-x={health / 100}
+        position-x={-0.5 * (1 - health / 100)}
+        position-z={-0.05}
+        scale={isDamaged ? [1.1, 1.1, 1] : [1, 1, 1]}
+      >
+        <planeGeometry args={[1, 0.25]} />
+        <meshBasicMaterial
+          color={getHealthColor()}
+          transparent
+          opacity={isDamaged ? 0.8 : 0.4}
+        />
+      </mesh>
+      <mesh
+        scale-x={health / 100}
+        position-x={-0.5 * (1 - health / 100)}
+        scale={isDamaged ? [1.1, 1.1, 1] : [1, 1, 1]}
+      >
+        <planeGeometry args={[1, 0.2]} />
+        <meshBasicMaterial color={getHealthColor()} toneMapped={false} />
+      </mesh>
+      <mesh position-z={0.01}>
+        <planeGeometry args={[1.02, 0.22]} />
+        <meshBasicMaterial
+          color="white"
+          transparent
+          opacity={0.3}
+        />
+      </mesh>
+    </Billboard>
   );
 };
