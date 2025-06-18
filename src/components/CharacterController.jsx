@@ -26,6 +26,7 @@ export const WEAPON_OFFSET = {
 export const CharacterController = ({
   userPlayer = true,
   onFire = () => {},
+  paused = false,
   downgradedPerformance,
   ...props
 }) => {
@@ -140,6 +141,8 @@ export const CharacterController = ({
   }, [state.state.health]);
 
   useFrame((_, delta) => {
+    if (paused) return; // 暂停时停止人物更新
+
     // CAMERA FOLLOW
     if (controls.current) {
       const cameraDistanceY = window.innerWidth < 1024 ? 10 : 20;
@@ -230,6 +233,13 @@ export const CharacterController = ({
     }
   }, [character.current]);
 
+  // 根据暂停状态禁用相机交互
+  useEffect(() => {
+    if (controls.current) {
+      controls.current.enabled = !paused;
+    }
+  }, [paused]);
+
   return (
     <group {...props} ref={group}>
       {userPlayer && <CameraControls ref={controls} />}
@@ -239,6 +249,7 @@ export const CharacterController = ({
         linearDamping={5}    // 线性阻尼
         lockRotations
         type="dynamic"
+        userData={{ type: 'player' }}
         onIntersectionEnter={({ other }) => {
           if (other.rigidBody.userData?.type === "magic" && state.state.health > 0) {
             const newHealth = state.state.health - other.rigidBody.userData.damage;

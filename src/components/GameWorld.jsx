@@ -3,10 +3,12 @@ import { Scene } from "./Scene";
 import { CharacterController } from "./CharacterController";
 import { MagicBall } from "./MagicBall";
 import { MagicAttack } from "./MagicAttack";
+import { Book } from "./Book";
 
 export const GameWorld = ({ downgradedPerformance = false }) => {
   const [balls, setballs] = useState([]);
   const [hits, setHits] = useState([]);
+  const [paused, setPaused] = useState(false);
 
   const onFire = (ball) => {
     setballs((prev) => [...prev, ball]);
@@ -24,9 +26,11 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   return (
     <>
       <Scene />
+      <Book setPaused={setPaused} />
       <CharacterController
         userPlayer={true}
         onFire={onFire}
+        paused={paused}
         downgradedPerformance={downgradedPerformance}
       />
       {balls.map((ball) => (

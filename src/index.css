@@ -10,3 +10,14 @@
 body {
   margin: 0;
 }
+
+@font-face {
+  font-family: 'QianTuXianMo';
+  src: url('/fonts/千图纤墨体.ttf') format('truetype');
+  font-display: swap;
+}
+/* 禁用页面滚动 */
+html,
+body {
+  overflow: hidden;
+}
