@@ -4,6 +4,7 @@ import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { Physics } from "@react-three/rapier";
 import { Suspense, useState } from "react";
 import { GameWorld } from "./components/GameWorld";
+import { Taskbar } from "./components/Taskbar";
 
 // -------------------------------
 // App 组件是整个 3D 游戏的入口：
@@ -17,6 +18,9 @@ function App() {
   const [downgradedPerformance, setDowngradedPerformance] = useState(false);
   return (
     <>
+      {/* 任务栏固定在视口左上角 */}
+      <Taskbar />
+
       {/* Drei 的 Loader：在模型 / 贴图下载过程中显示进度条 */}
       <Loader />
 
@@ -64,5 +68,5 @@ function App() {
     </>
   );
 }
-
 export default App;
+

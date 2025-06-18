@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Scene } from "./Scene";
 import { CharacterController } from "./CharacterController";
 import { MagicBall } from "./MagicBall";
 import { MagicAttack } from "./MagicAttack";
 import { Book } from "./Book";
+import { useQuest } from "./QuestContext";
+import { EnemySpawner } from "./EnemySpawner";
 
 export const GameWorld = ({ downgradedPerformance = false }) => {
   const [balls, setballs] = useState([]);
   const [hits, setHits] = useState([]);
   const [paused, setPaused] = useState(false);
+  const { active, kills, done, startQuest } = useQuest();
+
+  const playerRef = useRef();
 
   const onFire = (ball) => {
     setballs((prev) => [...prev, ball]);
@@ -26,12 +31,15 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   return (
     <>
       <Scene />
-      <Book setPaused={setPaused} />
+      <Book setPaused={setPaused} onClose={startQuest} />
+      <EnemySpawner playerRef={playerRef} active={active} />
       <CharacterController
         userPlayer={true}
         onFire={onFire}
         paused={paused}
         downgradedPerformance={downgradedPerformance}
+        canAttack={active}
+        playerRef={playerRef}
       />
       {balls.map((ball) => (
         <MagicBall

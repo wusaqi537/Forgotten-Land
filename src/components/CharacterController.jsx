@@ -28,6 +28,8 @@ export const CharacterController = ({
   onFire = () => {},
   paused = false,
   downgradedPerformance,
+  canAttack,
+  playerRef,
   ...props
 }) => {
   const group = useRef();
@@ -190,8 +192,8 @@ export const CharacterController = ({
         setAnimation("Idle");
       }
 
-      // 处理射击
-      if (keyboardControls.fire) {
+      // 处理射击；没任务就不能射
+      if (keyboardControls.fire && canAttack) {
         setAnimation(moveX !== 0 || moveZ !== 0 ? "Run_Shoot" : "Idle_Shoot");
         if (Date.now() - lastShoot.current > FIRE_RATE) {
           lastShoot.current = Date.now();
@@ -240,6 +242,13 @@ export const CharacterController = ({
     }
   }, [paused]);
 
+  // 将 rigidbody 引用暴露给父级
+  useEffect(() => {
+    if (playerRef) {
+      playerRef.current = rigidbody.current;
+    }
+  }, [playerRef]);
+
   return (
     <group {...props} ref={group}>
       {userPlayer && <CameraControls ref={controls} />}
@@ -253,6 +262,23 @@ export const CharacterController = ({
         onIntersectionEnter={({ other }) => {
           if (other.rigidBody.userData?.type === "magic" && state.state.health > 0) {
             const newHealth = state.state.health - other.rigidBody.userData.damage;
+            if (newHealth <= 0) {
+              state.setState("dead", true);
+              state.setState("health", 0);
+              rigidbody.current.setEnabled(false);
+              setTimeout(() => {
+                rigidbody.current.setTranslation({ x: 0, y: 0, z: 60 });
+                rigidbody.current.setEnabled(true);
+                state.setState("health", 100);
+                state.setState("dead", false);
+              }, 2000);
+            } else {
+              state.setState("health", newHealth);
+            }
+          }
+          // 被幽魂近战攻击
+          if (other.rigidBody.userData?.type === "enemy" && state.state.health > 0) {
+            const newHealth = state.state.health - 10; // 幽魂近战固定 10 点
             if (newHealth <= 0) {
               state.setState("dead", true);
               state.setState("health", 0);

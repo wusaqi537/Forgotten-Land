@@ -4,7 +4,11 @@ import { useFrame } from '@react-three/fiber';
 import { useRef, useState, useEffect } from 'react';
 
 // 可拾取的书籍
-export function Book({ position = [0, 0, 80], setPaused = () => {} }) {
+export function Book({
+  position = [0, 0, 80],
+  setPaused = () => {},
+  onClose   = () => {},
+}) {
   const { scene } = useGLTF('/models/book/scene.gltf');
   const group = useRef();
   const [collected, setCollected] = useState(false);
@@ -102,7 +106,10 @@ export function Book({ position = [0, 0, 80], setPaused = () => {} }) {
               <p style={{ marginTop: '16px', fontStyle: 'italic', textAlign: 'right', fontFamily: 'QianTuXianMo, "Times New Roman", serif' }}>—— 我们，都是被困在循环里的，同一个幽魂。</p>
               {canClose && (
                 <button
-                  onClick={() => setRemoved(true)}
+                  onClick={() => {
+                    setRemoved(true);
+                    onClose();
+                  }}
                   style={{
                     position: 'absolute',
                     top: '-14px',
