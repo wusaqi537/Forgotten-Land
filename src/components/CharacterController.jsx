@@ -1,7 +1,7 @@
 import { CameraControls, Billboard, Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { NewCharacter } from "./Character";
 import * as THREE from "three";
 import { useQuest } from "./QuestContext";
@@ -145,6 +145,14 @@ export const CharacterController = ({
     }
   }, []);
 
+  // 提供回血函数，确保引用稳定
+  const healPlayer = useCallback((amount = 10) => {
+    setPlayerState(prev => ({
+      ...prev,
+      health: Math.min(prev.health + amount, 100),
+    }));
+  }, []);
+
   useEffect(() => {
     if (state.state.dead) {
       const audio = new Audio("/audios/玩家死亡.mp3");
@@ -163,6 +171,8 @@ export const CharacterController = ({
 
   useFrame((_, delta) => {
     if (paused) return; // 暂停时停止人物更新
+
+    if (!rigidbody.current) return; // 刚体尚未创建
 
     // CAMERA FOLLOW
     if (controls.current) {
@@ -217,7 +227,7 @@ export const CharacterController = ({
         if (Date.now() - lastShoot.current > FIRE_RATE) {
           lastShoot.current = Date.now();
           const newBullet = {
-            id: "bullet-" + Date.now(),
+            id: "bullet-" + crypto.randomUUID(),
             position: vec3(rigidbody.current.translation()),
             angle: character.current.rotation.y,
             player: "player",
@@ -286,7 +296,7 @@ export const CharacterController = ({
         linearDamping={2}    // 线性阻尼
         lockRotations
         type="dynamic"
-        userData={{ type: 'player' }}
+        userData={{ type: 'player', healPlayer }}
         onIntersectionEnter={({ other }) => {
           if (other.rigidBody.userData?.type === "magic" && state.state.health > 0) {
             const newHealth = state.state.health - other.rigidBody.userData.damage;

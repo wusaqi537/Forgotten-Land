@@ -2,19 +2,30 @@ import { createPortal } from "react-dom";
 import { useQuest } from "./QuestContext";
 
 export const Taskbar = () => {
-  const { active, kills, done, rewardClaimed, claimReward } = useQuest();
+  const { active, kills, done, rewardClaimed, claimReward, noodleActive, noodleCollected } = useQuest();
 
-  if (!active) return null;   // 还没接任务不显示
+  if (!active && !noodleActive) return null;   // 未接任务亦未到第二阶段
 
   let content;
   let pointer = "none";
-  if (!done) {
-    content = `击杀幽魂：${kills} / 10`;
-  } else if (done && !rewardClaimed) {
-    content = "点击领取奖励：跳跃技能";
-    pointer = "auto";
+
+  if (!noodleActive) {
+    // 第一阶段：击杀幽魂
+    if (!done) {
+      content = `击杀幽魂：${kills} / 10`;
+    } else if (!rewardClaimed) {
+      content = "点击领取奖励：跳跃技能";
+      pointer = "auto";
+    } else {
+      content = "奖励已领取：跳跃技能";
+    }
   } else {
-    content = "奖励已领取：跳跃技能";
+    // 第二阶段：收集面
+    if (noodleCollected < 3) {
+      content = `收集面：${noodleCollected} / 3`;
+    } else {
+      content = "任务完成：已收集三碗面";
+    }
   }
 
   return createPortal(

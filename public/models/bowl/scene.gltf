@@ -1,0 +1,264 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 8435,
+      "max": [
+        0.11945733428001404,
+        0.1312580704689026,
+        0.24528354406356812
+      ],
+      "min": [
+        -0.11945734173059464,
+        -0.11945731937885284,
+        -4.689844068650473e-09
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 101220,
+      "componentType": 5126,
+      "count": 8435,
+      "max": [
+        0.9999574422836304,
+        0.9999600648880005,
+        1.0
+      ],
+      "min": [
+        -0.9999133348464966,
+        -0.9999991059303284,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 8435,
+      "max": [
+        0.9973352551460266,
+        0.9974477291107178
+      ],
+      "min": [
+        0.0025522708892822266,
+        0.0025522708892822266
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 67480,
+      "componentType": 5126,
+      "count": 8435,
+      "max": [
+        0.9973352551460266,
+        0.9974477291107178
+      ],
+      "min": [
+        0.0025522708892822266,
+        0.0025522708892822266
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 26688,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Polypus_yum (https://sketchfab.com/Polypus_yum)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/classic-ramen-734a5d864fc845918b5ab0a0a5b9d46c",
+      "title": "🍜Classic Ramen🍜"
+    },
+    "generator": "Sketchfab-13.52.1",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 106752,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 134960,
+      "byteOffset": 106752,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 202440,
+      "byteOffset": 241712,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 444152,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Ramen_MAT_baseColor.png"
+    },
+    {
+      "uri": "textures/Ramen_MAT_metallicRoughness.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Ramen_MAT",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicRoughnessTexture": {
+          "index": 1
+        },
+        "roughnessFactor": 0.9978710019832449
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Ramen_3D_Ramen_MAT_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TEXCOORD_0": 2,
+            "TEXCOORD_1": 3
+          },
+          "indices": 4,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        0.9514325261116028,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.1126045937327537e-16,
+        -0.9514325261116028,
+        0.0,
+        0.0,
+        0.9514325261116028,
+        2.1126045937327537e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "RAMEN_3D.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4
+      ],
+      "matrix": [
+        76.87637288904568,
+        0.0,
+        -63.953289918693024,
+        0.0,
+        -63.95328991869296,
+        -4.371139006309477e-06,
+        -76.87637288904561,
+        0.0,
+        -2.795487191731283e-06,
+        99.99999999999991,
+        -3.360373113103776e-06,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Ramen_3D"
+    },
+    {
+      "mesh": 0,
+      "name": "Ramen_3D_Ramen_MAT_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    }
+  ]
+}

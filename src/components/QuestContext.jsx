@@ -11,9 +11,16 @@ export const QuestProvider = ({ children }) => {
     const [rewardClaimed, setRewardClaimed] = useState(false);   // 是否已领取奖励
     const [hasJumpSkill, setHasJumpSkill] = useState(false);     // 是否解锁跳跃
     const [message, setMessage] = useState(null);                // 中央提示消息
+    const [noodleActive, setNoodleActive] = useState(false);      // 第二阶段：是否开始收集面
+    const [noodleCollected, setNoodleCollected] = useState(0);    // 已收集面数
+    const NOODLE_TARGET = 3;
 
     // 关闭书本时调用，开始任务
-    const startQuest = () => setActive(true);
+    const startQuest = () => {
+        setActive(true);
+        setMessage("已接取任务：幽魂");
+        setTimeout(() => setMessage(null), 2000);
+    };
 
     // 玩家击杀幽魂时调用
     const addKill = useCallback(() => {
@@ -29,11 +36,27 @@ export const QuestProvider = ({ children }) => {
         setRewardClaimed(true);
         setHasJumpSkill(true);
         setMessage("获得跳跃技能！按 E 键跳跃");
-        // 2 秒后自动消失
+        // 两秒后自动消失
         setTimeout(() => setMessage(null), 2000);
+        // 开启第二阶段任务
+        setNoodleActive(true);
     }, [rewardClaimed]);
 
-    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, message };
+    // 玩家收集到一碗面时调用
+    const addNoodle = useCallback(() => {
+        if (!noodleActive) return;
+        setNoodleCollected((prev) => {
+            const next = prev + 1;
+            if (next >= NOODLE_TARGET) {
+                setMessage("已收集三碗面，任务完成！");
+                // 三秒后提示消失
+                setTimeout(() => setMessage(null), 3000);
+            }
+            return next;
+        });
+    }, [noodleActive]);
+
+    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, message, noodleActive, noodleCollected, addNoodle };
     return <QuestContext.Provider value={value}>{children}</QuestContext.Provider>;
 };
 

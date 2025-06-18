@@ -6,14 +6,17 @@ import { MagicAttack } from "./MagicAttack";
 import { Book } from "./Book";
 import { useQuest } from "./QuestContext";
 import { EnemySpawner } from "./EnemySpawner";
+import { HealthPack } from "./HealthPack";
+import { NoodleBowl } from "./NoodleBowl";
 
 export const GameWorld = ({ downgradedPerformance = false }) => {
   const [balls, setballs] = useState([]);
   const [hits, setHits] = useState([]);
   const [paused, setPaused] = useState(false);
-  const { active, kills, done, startQuest } = useQuest();
+  const { active, kills, done, startQuest, noodleActive, noodleCollected } = useQuest();
 
   const playerRef = useRef();
+  const noodlePositions = [[-10, 5, 85], [0, 5, 85], [10, 5, 85]];
 
   const onFire = (ball) => {
     setballs((prev) => [...prev, ball]);
@@ -21,7 +24,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
 
   const onHit = (ballId, position) => {
     setballs((prev) => prev.filter((b) => b.id !== ballId));
-    setHits((prev) => [...prev, { id: ballId, position }]);
+    setHits((prev) => [...prev, { id: `hit-${ballId}`, position }]);
   };
 
   const onHitEnded = (hitId) => {
@@ -33,6 +36,10 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       <Scene />
       <Book setPaused={setPaused} onClose={startQuest} />
       <EnemySpawner playerRef={playerRef} active={active} />
+      <HealthPack />
+      {noodleActive && noodleCollected < 3 && noodlePositions.map((pos, i) => (
+        <NoodleBowl key={i} position={pos} />
+      ))}
       <CharacterController
         userPlayer={true}
         onFire={onFire}
