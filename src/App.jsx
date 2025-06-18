@@ -5,6 +5,7 @@ import { Physics } from "@react-three/rapier";
 import { Suspense, useState } from "react";
 import { GameWorld } from "./components/GameWorld";
 import { Taskbar } from "./components/Taskbar";
+import { CenterTip } from "./components/CenterTip";
 
 // -------------------------------
 // App 组件是整个 3D 游戏的入口：
@@ -20,6 +21,8 @@ function App() {
     <>
       {/* 任务栏固定在视口左上角 */}
       <Taskbar />
+      {/* 技能提示居中显示 */}
+      <CenterTip />
 
       {/* Drei 的 Loader：在模型 / 贴图下载过程中显示进度条 */}
       <Loader />
@@ -54,7 +57,7 @@ function App() {
          * Physics 创建 Rapier 物理世界，内部的子组件可以直接使用 RigidBody / Collider。
          */}
         <Suspense>
-          <Physics>
+          <Physics gravity={[0, -25, 0]}>
             <GameWorld downgradedPerformance={downgradedPerformance} />
           </Physics>
         </Suspense>

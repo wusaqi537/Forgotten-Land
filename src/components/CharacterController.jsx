@@ -4,9 +4,13 @@ import { CapsuleCollider, RigidBody, vec3 } from "@react-three/rapier";
 import { useEffect, useRef, useState } from "react";
 import { NewCharacter } from "./Character";
 import * as THREE from "three";
+import { useQuest } from "./QuestContext";
 
-const MOVEMENT_SPEED = 120;
+const MOVEMENT_SPEED = 100;
 const FIRE_RATE = 400;
+const JUMP_FORCE = 35;   // 跳跃冲量
+const JUMP_COOLDOWN = 300;
+const MAX_JUMPS = 4;
 
 // 键盘控制状态
 const keyboardControls = {
@@ -37,6 +41,9 @@ export const CharacterController = ({
   const rigidbody = useRef();
   const [animation, setAnimation] = useState("Idle");
   const lastShoot = useRef(0);
+  const { hasJumpSkill } = useQuest();
+  const lastJump = useRef(0);
+  const jumpCount = useRef(0);
 
   const [playerState, setPlayerState] = useState({
     health: 100,
@@ -83,6 +90,18 @@ export const CharacterController = ({
         case 'Space':
           keyboardControls.fire = true;
           break;
+        case 'KeyE':
+          if (hasJumpSkill) {
+            const now = Date.now();
+            if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < MAX_JUMPS) {
+              lastJump.current = now;
+              rigidbody.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
+              setAnimation("Jump");
+              jumpCount.current += 1;
+              setTimeout(() => setAnimation("Idle"), 600);
+            }
+          }
+          break;
       }
     };
 
@@ -117,7 +136,7 @@ export const CharacterController = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [userPlayer]);
+  }, [userPlayer, hasJumpSkill]);
 
   // 固定出生点位置（与 Scene.jsx 中 spawn_0 相同）
   useEffect(() => {
@@ -224,6 +243,15 @@ export const CharacterController = ({
     } else if (!keyboardControls.moveForward && !keyboardControls.moveBackward && !keyboardControls.moveLeft && !keyboardControls.moveRight) {
       setAnimation("Idle");
     }
+
+    // 检测是否落地，重置跳跃次数
+    if (rigidbody.current) {
+      const vel = rigidbody.current.linvel();
+      // 当垂直速度接近 0 时视为落地
+      if (Math.abs(vel.y) < 0.01 ) {
+        jumpCount.current = 0;
+      }
+    }
   });
 
   const controls = useRef();
@@ -255,7 +283,7 @@ export const CharacterController = ({
       <RigidBody
         ref={rigidbody}
         colliders={false}
-        linearDamping={5}    // 线性阻尼
+        linearDamping={2}    // 线性阻尼
         lockRotations
         type="dynamic"
         userData={{ type: 'player' }}
