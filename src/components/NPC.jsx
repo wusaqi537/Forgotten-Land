@@ -28,7 +28,7 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
   const [inRange, setInRange] = useState(false);
   const [talking, setTalking] = useState(false);
   const [dialogStep, setDialogStep] = useState(0);
-  const { showMessage } = useQuest();
+  const { showMessage, addClue } = useQuest();
 
   // 距离检测
   useFrame(() => {
@@ -50,6 +50,7 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
         if (talking) {
           setTalking(false);
           if(dialogStep===1){
+            addClue('小鹿');
             showMessage('已收集线索：小鹿',2000);
             setDialogStep(0);
           }
@@ -63,7 +64,7 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [inRange, talking, dialogStep, showMessage]);
+  }, [inRange, talking, dialogStep, showMessage, addClue]);
 
   // 根据缩放调整传感器盒子尺寸（按默认 0.4,0.9,0.4 放大）
   const colliderSize = [0.4 * scale[0], 0.9 * scale[1], 0.4 * scale[2]];

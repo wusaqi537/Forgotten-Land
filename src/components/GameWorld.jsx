@@ -9,12 +9,14 @@ import { EnemySpawner } from "./EnemySpawner";
 import { HealthPack } from "./HealthPack";
 import { NoodleBowl } from "./NoodleBowl";
 import { NPC } from "./NPC";
+import { Door } from "./Door";
+import { PortalZone } from "./PortalZone";
 
 export const GameWorld = ({ downgradedPerformance = false }) => {
   const [balls, setballs] = useState([]);
   const [hits, setHits] = useState([]);
   const [paused, setPaused] = useState(false);
-  const { active, kills, done, startQuest, noodleActive, noodleCollected } = useQuest();
+  const { active, kills, done, startQuest, noodleActive, noodleCollected, clues } = useQuest();
 
   const playerRef = useRef();
   const noodlePositions = [[-10, 5, 85], [0, 4, 300], [10, 5, 135]];
@@ -67,6 +69,10 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       <directionalLight position={[3, 5, 2]} intensity={0.8} />
       {/* 任务 NPC */}
       <NPC playerRef={playerRef} position={[0,-2.1, 250]} scale={[2, 2, 2]} />
+      {/* 出生点后方的门，收集到小鹿线索后出现 */}
+      <Door visible={clues.includes('小鹿')} />
+      {/* 传送门感应区 */}
+      <PortalZone />
     </>
   );
 };

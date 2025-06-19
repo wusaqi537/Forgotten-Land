@@ -12,6 +12,7 @@ export const QuestProvider = ({ children }) => {
     const [jumpLevel, setJumpLevel] = useState(0);  // 0=无 2=双跳 4=四段跳
     const hasJumpSkill = jumpLevel>0;
     const [message, setMessage] = useState(null);                // 中央提示消息
+    const [clues,setClues]=useState([]);                         // 线索列表
     const [noodleActive, setNoodleActive] = useState(false);      // 第二阶段：是否开始收集面
     const [noodleCollected, setNoodleCollected] = useState(0);    // 已收集面数
     const [noodleDone,setNoodleDone]=useState(false);
@@ -25,6 +26,10 @@ export const QuestProvider = ({ children }) => {
             setTimeout(() => setMessage(null), duration);
         }
     }, []);
+
+    const addClue=useCallback((clue)=>{
+        setClues(prev=>prev.includes(clue)?prev:[...prev,clue]);
+    },[]);
 
     // 关闭书本时调用，开始任务
     const startQuest = () => {
@@ -70,7 +75,7 @@ export const QuestProvider = ({ children }) => {
         showMessage("解锁四段跳！按 E 连跳",2000);
     }, [noodleDone,noodleRewardClaimed]);
 
-    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, jumpLevel, message, noodleActive, noodleCollected, addNoodle, noodleDone, noodleRewardClaimed, claimNoodleReward, showMessage };
+    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, jumpLevel, message, noodleActive, noodleCollected, addNoodle, noodleDone, noodleRewardClaimed, claimNoodleReward, showMessage, clues, addClue };
     return <QuestContext.Provider value={value}>{children}</QuestContext.Provider>;
 };
 
