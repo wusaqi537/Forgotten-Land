@@ -5,6 +5,7 @@ import { Quaternion, Vector3, Vector3 as V3 } from "three";
 import { RigidBody, CapsuleCollider } from "@react-three/rapier";
 import { useQuest } from "./QuestContext";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { GhostDissolveEffect } from "./GhostDissolveEffect";
 
 const WALK_SPEED = 4;          // 行走速度 m/s
 const ATTACK_RANGE = 1;        // 攻击距离 m
@@ -13,7 +14,7 @@ const ROT = [0, 0, 0];
 const ATTACK_COOLDOWN = 1000;    // 毫秒
 const MAX_HP = 10;
 
-export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead }) {
+export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead, raining = true }) {
   const { addKill } = useQuest();
   const { scene, animations } = useGLTF("/models/ghost/scene.gltf");
   const ghostScene = useMemo(() => clone(scene), [scene]);
@@ -23,6 +24,8 @@ export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead }) {
   const [curr, setCurr] = useState("Idle");
   const [hp, setHp] = useState(MAX_HP);
   const [dead, setDead] = useState(false);
+  const [vanishing, setVanishing] = useState(false);
+  const vanishPosRef = useRef(new Vector3(...spawnPos));
   const lastAttack = useRef(0);
 
   // 播放动画并做去重
@@ -43,13 +46,29 @@ export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead }) {
     }
   }, [spawnPos]);
 
-  // 被击中
+  const startVanish = () => {
+    if (vanishing) return;
+    setVanishing(true);
+    // 记录当前世界坐标并禁用刚体，避免在物理步内移除
+    if (rigid.current) {
+      const t = rigid.current.translation();
+      vanishPosRef.current.set(t.x, t.y, t.z);
+      // 将幽魂刚体禁用，防止继续参与碰撞/积分
+      rigid.current.setEnabled(false);
+    }
+    // 延迟完全卸载（移除 RigidBody）
+    setTimeout(() => {
+      setDead(true);
+      if (onDead) onDead();
+    }, 2200);
+  };
+
   const handleHit = (damage = 10) => {
     setHp((prev) => {
       const next = prev - damage;
       if (next <= 0) {
-        setDead(true);
         addKill();
+        startVanish();
       }
       return next;
     });
@@ -93,46 +112,58 @@ export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead }) {
     }
   });
 
+  // 雨停时触发消散
   useEffect(() => {
-    if (dead && onDead) onDead();
-  }, [dead, onDead]);
+    if (!raining) {
+      startVanish();
+    }
+  }, [raining]);
 
+  // 如果特效结束后则卸载
   if (dead) return null;
 
   return (
-    <RigidBody
-      ref={rigid}
-      type="kinematicPosition"
-      colliders={false}
-      sensor
-      userData={{ type: "enemy" }}
-      onIntersectionEnter={({ other }) => {
-        if (other.rigidBody.userData?.type === "magic") {
-          const dmg = other.rigidBody.userData?.damage ?? 10;
-          handleHit(dmg);
-        }
-      }}
-    >
-      {/* 血条 */}
-      <Billboard position={[0, 2, 0]}>
-        {/* 背景条 */}
-        <mesh position-z={-0.01}>
-          <planeGeometry args={[1, 0.12]} />
-          <meshBasicMaterial color="black" transparent opacity={0.4} />
-        </mesh>
-        {/* 红色血量条 */}
-        <mesh scale-x={hp / MAX_HP} position-x={-0.5 * (1 - hp / MAX_HP)}>
-          <planeGeometry args={[1, 0.12]} />
-          <meshBasicMaterial color="red" toneMapped={false} />
-        </mesh>
-      </Billboard>
+    <group>
+      {/* 粒子特效层 */}
+      {vanishing && <GhostDissolveEffect position={vanishPosRef.current} />}
 
-      <group ref={model}>
-        <primitive object={ghostScene} scale={SCALE} rotation={ROT} />
-      </group>
-      {/* 用于碰撞检测的胶囊 */}
-      <CapsuleCollider args={[0.4, 0.6]} position={[0, 1, 0]} />
-    </RigidBody>
+      {/* 幽魂物理与模型层（vanishing 时保持但隐藏模型） */}
+      <RigidBody
+        ref={rigid}
+        type="kinematicPosition"
+        colliders={false}
+        sensor
+        userData={{ type: "enemy" }}
+        onIntersectionEnter={({ other }) => {
+          if (other.rigidBody.userData?.type === "magic") {
+            const dmg = other.rigidBody.userData?.damage ?? 10;
+            handleHit(dmg);
+          }
+        }}
+      >
+        {!vanishing && (
+          <>
+            {/* 血条 */}
+            <Billboard position={[0, 2, 0]}>
+              <mesh position-z={-0.01}>
+                <planeGeometry args={[1, 0.12]} />
+                <meshBasicMaterial color="black" transparent opacity={0.4} />
+              </mesh>
+              <mesh scale-x={hp / MAX_HP} position-x={-0.5 * (1 - hp / MAX_HP)}>
+                <planeGeometry args={[1, 0.12]} />
+                <meshBasicMaterial color="red" toneMapped={false} />
+              </mesh>
+            </Billboard>
+
+            <group ref={model}>
+              <primitive object={ghostScene} scale={SCALE} rotation={ROT} />
+            </group>
+          </>
+        )}
+        {/* 用于碰撞检测的胶囊 */}
+        <CapsuleCollider args={[0.4, 0.6]} position={[0, 1, 0]} />
+      </RigidBody>
+    </group>
   );
 }
 

@@ -6,7 +6,7 @@ const GHOST_COUNT = 10;
 const MIN_RADIUS = 20;  // 最小距离（米）
 const MAX_RADIUS = 30;  // 最大距离
 
-export const EnemySpawner = ({ playerRef, active }) => {
+export const EnemySpawner = ({ playerRef, active, raining = true }) => {
   const [ghosts, setGhosts] = useState([]);
 
   // 生成一个新的出生坐标
@@ -23,21 +23,25 @@ export const EnemySpawner = ({ playerRef, active }) => {
       return [x, 0, z];
   }, [playerRef]);
 
-  // 当任务激活时初始化 5 只
+  // 当任务激活且雨天时初始化幽魂；如果任务未激活则清空。
   useEffect(() => {
-    if (active) {
+    if (!active) {
+      setGhosts([]);
+      return;
+    }
+
+    if (raining) {
       setGhosts((prev) => {
         if (prev.length) return prev; // 已有
         return Array.from({ length: 5 }, () => ({ id: Math.random().toString(36).slice(2), pos: generatePos() }));
       });
-    } else {
-      setGhosts([]);
     }
-  }, [active, generatePos]);
+    // 若 active=true 但 raining=false，不做任何操作，保留现有幽魂，等待它们自行消散
+  }, [active, raining, generatePos]);
 
-  // 保持数量
+  // 保持数量（仅雨天刷新）
   useEffect(() => {
-    if (!active) return;
+    if (!active || !raining) return;
     if (ghosts.length < 5) {
       setGhosts((prev) => {
         const next = [...prev];
@@ -47,7 +51,7 @@ export const EnemySpawner = ({ playerRef, active }) => {
         return next;
       });
     }
-  }, [ghosts, active, generatePos]);
+  }, [ghosts, active, raining, generatePos]);
 
   const handleDead = (id) => {
     setGhosts((prev) => prev.filter((g) => g.id !== id));
@@ -58,7 +62,7 @@ export const EnemySpawner = ({ playerRef, active }) => {
   return (
     <>
       {ghosts.map((g) => (
-        <GhostFollow key={g.id} playerRef={playerRef} spawnPos={g.pos} onDead={() => handleDead(g.id)} />
+        <GhostFollow key={g.id} playerRef={playerRef} spawnPos={g.pos} onDead={() => handleDead(g.id)} raining={raining} />
       ))}
     </>
   );

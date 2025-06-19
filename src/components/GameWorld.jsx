@@ -111,7 +111,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       {rainVisible && <Rain count={1500} area={40} speed={10} />}
       <Scene />
       <Book setPaused={setPaused} onClose={startQuest} />
-      <EnemySpawner playerRef={playerRef} active={active && raining} />
+      <EnemySpawner playerRef={playerRef} active={active} raining={raining} />
       <HealthPack />
       {noodleActive && noodleCollected < 3 && noodlePositions.map((pos, i) => (
         <NoodleBowl key={i} position={pos} />
@@ -140,7 +140,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       ))}
       <ambientLight ref={ambientRef} intensity={0.3} />
       <directionalLight ref={dirRef} position={[3, 5, 2]} intensity={0.5} />
-      <WeatherButton position={[-10, 3, 300]} scale={[1.5,1.5,1.5]} onToggle={toggleWeather} />
+      <WeatherButton position={[-17.6, 5, 308]} scale={[1.5,1.5,1.5]} onToggle={toggleWeather} />
       {/* 任务 NPC */}
       <NPC playerRef={playerRef} position={[0,-2.1, 250]} scale={[2, 2, 2]} />
       {/* 出生点后方的门，收集到线索后出现 */}
