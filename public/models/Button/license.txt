@@ -1,0 +1,11 @@
+Model Information:
+* title:	Button Round Flat
+* source:	https://sketchfab.com/3d-models/button-round-flat-c7e7966f8a7c49b8a7bae8974d08e120
+* author:	Da-Luna (https://sketchfab.com/da-luna)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Button Round Flat" (https://sketchfab.com/3d-models/button-round-flat-c7e7966f8a7c49b8a7bae8974d08e120) by Da-Luna (https://sketchfab.com/da-luna) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

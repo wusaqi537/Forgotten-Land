@@ -16,11 +16,11 @@ export const EnemySpawner = ({ playerRef, active }) => {
       const p = playerRef.current.translation();
       center = [p.x, p.y, p.z];
     }
-    const angle = Math.random() * Math.PI * 2;
-    const r = MIN_RADIUS + Math.random() * (MAX_RADIUS - MIN_RADIUS);
-    const x = center[0] + Math.cos(angle) * r;
-    const z = center[2] + Math.sin(angle) * r;
-    return [x, 0, z];
+      const angle = Math.random() * Math.PI * 2;
+      const r = MIN_RADIUS + Math.random() * (MAX_RADIUS - MIN_RADIUS);
+      const x = center[0] + Math.cos(angle) * r;
+      const z = center[2] + Math.sin(angle) * r;
+      return [x, 0, z];
   }, [playerRef]);
 
   // 当任务激活时初始化 5 只

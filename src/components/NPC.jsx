@@ -50,8 +50,8 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
         if (talking) {
           setTalking(false);
           if(dialogStep===1){
-            addClue('小鹿');
-            showMessage('已收集线索：小鹿',2000);
+            addClue('红色按钮');
+            showMessage('已收集线索：红色按钮',2000);
             setDialogStep(0);
           }
         }else{
@@ -82,9 +82,9 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
       `
       let html="";
       if(dialogStep===0){
-        html=`你好，旅行者！这里似乎充满了危险的幽魂。如果你能帮助我清除它们，我将给予你一些指引。<div style='margin-top:12px;font-size:16px;'>(按 H 继续，F 结束)</div>`;
+        html=`这个地方一直下雨，真烦人！魔法师说有一个红色按钮，可以改变天气。<div style='margin-top:12px;font-size:16px;'>(按 H 继续，F 结束)</div>`;
       }else{
-        html=`什么，怎么会没有？<div style='margin-top:12px;font-size:16px;text-align:right;'>(按 F 关闭)</div>`;
+        html=`什么，你想去找找看？那它应该就在前方。<div style='margin-top:12px;font-size:16px;text-align:right;'>(按 F 关闭)</div>`;
       }
       el.innerHTML=html;
       document.body.appendChild(el)
