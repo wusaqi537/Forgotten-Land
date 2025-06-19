@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import { useQuest } from "./QuestContext";
 
 export const Taskbar = () => {
-  const { active, kills, done, rewardClaimed, claimReward, noodleActive, noodleCollected } = useQuest();
+  const { active, kills, done, rewardClaimed, claimReward, noodleActive, noodleCollected, noodleDone, noodleRewardClaimed, claimNoodleReward } = useQuest();
 
   if (!active && !noodleActive) return null;   // 未接任务亦未到第二阶段
 
@@ -17,14 +17,17 @@ export const Taskbar = () => {
       content = "点击领取奖励：跳跃技能";
       pointer = "auto";
     } else {
-      content = "奖励已领取：跳跃技能";
+      content = "奖励已领取：双段跳技能";
     }
   } else {
     // 第二阶段：收集面
     if (noodleCollected < 3) {
       content = `收集面：${noodleCollected} / 3`;
+    } else if(!noodleRewardClaimed){
+      content = "点击领取奖励：四段跳技能";
+      pointer="auto";
     } else {
-      content = "任务完成：已收集三碗面";
+      content = "奖励已领取：四段跳技能";
     }
   }
 
@@ -32,6 +35,7 @@ export const Taskbar = () => {
     <div
       onClick={() => {
         if (done && !rewardClaimed) claimReward();
+        if (noodleDone && !noodleRewardClaimed) claimNoodleReward();
       }}
       style={{
         position: "fixed",

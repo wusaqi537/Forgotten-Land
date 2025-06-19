@@ -13,7 +13,7 @@ const ROT = [0, 0, 0];
 const ATTACK_COOLDOWN = 1000;    // 毫秒
 const MAX_HP = 10;
 
-export default function GhostFollow({ playerRef, spawnPos = [0,0,0] }) {
+export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead }) {
   const { addKill } = useQuest();
   const { scene, animations } = useGLTF("/models/ghost/scene.gltf");
   const ghostScene = useMemo(() => clone(scene), [scene]);
@@ -92,6 +92,10 @@ export default function GhostFollow({ playerRef, spawnPos = [0,0,0] }) {
       }
     }
   });
+
+  useEffect(() => {
+    if (dead && onDead) onDead();
+  }, [dead, onDead]);
 
   if (dead) return null;
 

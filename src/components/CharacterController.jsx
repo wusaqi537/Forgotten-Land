@@ -10,7 +10,9 @@ const MOVEMENT_SPEED = 100;
 const FIRE_RATE = 400;
 const JUMP_FORCE = 35;   // 跳跃冲量
 const JUMP_COOLDOWN = 300;
-const MAX_JUMPS = 4;
+// jumpLevel from context decides max jumps
+const MAX_HP = 120;   // 玩家最大生命值
+const SPAWN_POS = { x: 0, y: 0, z: 60 }; // 出生 / 复活坐标
 
 // 键盘控制状态
 const keyboardControls = {
@@ -41,12 +43,13 @@ export const CharacterController = ({
   const rigidbody = useRef();
   const [animation, setAnimation] = useState("Idle");
   const lastShoot = useRef(0);
-  const { hasJumpSkill } = useQuest();
+  const { jumpLevel } = useQuest();
   const lastJump = useRef(0);
   const jumpCount = useRef(0);
+  const respawnPending = useRef(0);
 
   const [playerState, setPlayerState] = useState({
-    health: 100,
+    health: MAX_HP,
     dead: false,
     profile: { name: "Player", color: "#ffffff" },
     deaths: 0,
@@ -91,9 +94,9 @@ export const CharacterController = ({
           keyboardControls.fire = true;
           break;
         case 'KeyE':
-          if (hasJumpSkill) {
+          if (jumpLevel>0) {
             const now = Date.now();
-            if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < MAX_JUMPS) {
+            if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < jumpLevel) {
               lastJump.current = now;
               rigidbody.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
               setAnimation("Jump");
@@ -136,12 +139,15 @@ export const CharacterController = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [userPlayer, hasJumpSkill]);
+  }, [userPlayer, jumpLevel]);
 
   // 固定出生点位置（与 Scene.jsx 中 spawn_0 相同）
   useEffect(() => {
     if (rigidbody.current) {
-      rigidbody.current.setTranslation({ x: 0, y: 0, z: 60 });
+      rigidbody.current.setEnabled(true);
+      rigidbody.current.setTranslation(SPAWN_POS, true);
+      rigidbody.current.setLinvel({x:0,y:0,z:0}, true);
+      rigidbody.current.setAngvel({x:0,y:0,z:0}, true);
     }
   }, []);
 
@@ -149,7 +155,7 @@ export const CharacterController = ({
   const healPlayer = useCallback((amount = 10) => {
     setPlayerState(prev => ({
       ...prev,
-      health: Math.min(prev.health + amount, 100),
+      health: Math.min(prev.health + amount, MAX_HP),
     }));
   }, []);
 
@@ -162,7 +168,7 @@ export const CharacterController = ({
   }, [state.state.dead]);
 
   useEffect(() => {
-    if (state.state.health < 100) {
+    if (state.state.health < MAX_HP) {
       const audio = new Audio("/audios/玩家受伤.mp3");
       audio.volume = 0.4;
       audio.play();
@@ -256,6 +262,11 @@ export const CharacterController = ({
 
     // 检测是否落地，重置跳跃次数
     if (rigidbody.current) {
+      if (respawnPending.current > 0) {
+        rigidbody.current.setTranslation(SPAWN_POS, true);
+        rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        respawnPending.current -= 1;
+      }
       const vel = rigidbody.current.linvel();
       // 当垂直速度接近 0 时视为落地
       if (Math.abs(vel.y) < 0.01 ) {
@@ -303,12 +314,30 @@ export const CharacterController = ({
             if (newHealth <= 0) {
               state.setState("dead", true);
               state.setState("health", 0);
-              rigidbody.current.setEnabled(false);
+              rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+              rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
               setTimeout(() => {
-                rigidbody.current.setTranslation({ x: 0, y: 0, z: 60 });
-                rigidbody.current.setEnabled(true);
-                state.setState("health", 100);
+                rigidbody.current.setTranslation(SPAWN_POS, true);
+                rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                jumpCount.current = 0;
+                respawnPending.current = 5;
+                state.setState("health", MAX_HP);
                 state.setState("dead", false);
+                // 立即刷新相机位置，禁用平滑，避免视觉残影
+                if (controls.current) {
+                  const cameraDistanceY = window.innerWidth < 1024 ? 10 : 20;
+                  const cameraDistanceZ = window.innerWidth < 1024 ? 12 : 16;
+                  controls.current.setLookAt(
+                    SPAWN_POS.x,
+                    SPAWN_POS.y + cameraDistanceY,
+                    SPAWN_POS.z + cameraDistanceZ,
+                    SPAWN_POS.x,
+                    SPAWN_POS.y + 1.5,
+                    SPAWN_POS.z,
+                    false
+                  );
+                }
               }, 2000);
             } else {
               state.setState("health", newHealth);
@@ -320,12 +349,29 @@ export const CharacterController = ({
             if (newHealth <= 0) {
               state.setState("dead", true);
               state.setState("health", 0);
-              rigidbody.current.setEnabled(false);
+              rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+              rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
               setTimeout(() => {
-                rigidbody.current.setTranslation({ x: 0, y: 0, z: 60 });
-                rigidbody.current.setEnabled(true);
-                state.setState("health", 100);
+                rigidbody.current.setTranslation(SPAWN_POS, true);
+                rigidbody.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
+                rigidbody.current.setAngvel({ x: 0, y: 0, z: 0 }, true);
+                jumpCount.current = 0;
+                respawnPending.current = 5;
+                state.setState("health", MAX_HP);
                 state.setState("dead", false);
+                if (controls.current) {
+                  const cameraDistanceY = window.innerWidth < 1024 ? 10 : 20;
+                  const cameraDistanceZ = window.innerWidth < 1024 ? 12 : 16;
+                  controls.current.setLookAt(
+                    SPAWN_POS.x,
+                    SPAWN_POS.y + cameraDistanceY,
+                    SPAWN_POS.z + cameraDistanceZ,
+                    SPAWN_POS.x,
+                    SPAWN_POS.y + 1.5,
+                    SPAWN_POS.z,
+                    false
+                  );
+                }
               }, 2000);
             } else {
               state.setState("health", newHealth);
@@ -395,8 +441,8 @@ const PlayerInfo = ({ state }) => {
         <meshBasicMaterial color="black" transparent opacity={0.5} />
       </mesh>
       <mesh
-        scale-x={health / 100}
-        position-x={-0.5 * (1 - health / 100)}
+        scale-x={health / MAX_HP}
+        position-x={-0.5 * (1 - health / MAX_HP)}
         position-z={-0.05}
         scale={isDamaged ? [1.1, 1.1, 1] : [1, 1, 1]}
       >
@@ -408,8 +454,8 @@ const PlayerInfo = ({ state }) => {
         />
       </mesh>
       <mesh
-        scale-x={health / 100}
-        position-x={-0.5 * (1 - health / 100)}
+        scale-x={health / MAX_HP}
+        position-x={-0.5 * (1 - health / MAX_HP)}
         scale={isDamaged ? [1.1, 1.1, 1] : [1, 1, 1]}
       >
         <planeGeometry args={[1, 0.2]} />

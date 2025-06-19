@@ -8,6 +8,7 @@ import { useQuest } from "./QuestContext";
 import { EnemySpawner } from "./EnemySpawner";
 import { HealthPack } from "./HealthPack";
 import { NoodleBowl } from "./NoodleBowl";
+import { NPC } from "./NPC";
 
 export const GameWorld = ({ downgradedPerformance = false }) => {
   const [balls, setballs] = useState([]);
@@ -16,7 +17,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   const { active, kills, done, startQuest, noodleActive, noodleCollected } = useQuest();
 
   const playerRef = useRef();
-  const noodlePositions = [[-10, 5, 85], [0, 5, 85], [10, 5, 85]];
+  const noodlePositions = [[-10, 5, 85], [0, 4, 300], [10, 5, 135]];
 
   const onFire = (ball) => {
     setballs((prev) => [...prev, ball]);
@@ -64,6 +65,8 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       ))}
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 2]} intensity={0.8} />
+      {/* 任务 NPC */}
+      <NPC playerRef={playerRef} position={[0,-2.1, 250]} scale={[2, 2, 2]} />
     </>
   );
 };

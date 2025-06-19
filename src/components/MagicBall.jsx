@@ -22,8 +22,20 @@ const playShotSound = () => {
   snd.play();
 };
 
+// 命中标志，防止同一颗子弹触发多次命中事件
+const useSingleHit = () => {
+  const hitRef = useRef(false);
+  return {
+    hasHit: () => hitRef.current,
+    markHit: () => {
+      hitRef.current = true;
+    },
+  };
+};
+
 export const MagicBall = ({ player, angle, position, onHit }) => {
   const rigidbody = useRef();
+  const { hasHit, markHit } = useSingleHit();
 
   useEffect(() => {
     playShotSound();
@@ -37,7 +49,8 @@ export const MagicBall = ({ player, angle, position, onHit }) => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (rigidbody.current && rigidbody.current.isEnabled()) {
+      if (rigidbody.current && rigidbody.current.isEnabled() && !hasHit()) {
+        markHit();
         rigidbody.current.setEnabled(false);
         onHit(vec3(rigidbody.current.translation()));
       }
@@ -63,7 +76,8 @@ export const MagicBall = ({ player, angle, position, onHit }) => {
           ref={rigidbody}
           gravityScale={0}
           onIntersectionEnter={(e) => {
-            if (e.other.rigidBody.userData?.type !== "magic") {
+            if (e.other.rigidBody.userData?.type !== "magic" && !hasHit()) {
+              markHit();
               rigidbody.current.setEnabled(false);
               onHit(vec3(rigidbody.current.translation()));
             }

@@ -9,17 +9,27 @@ export const QuestProvider = ({ children }) => {
     const [kills, setKills] = useState(0);         // 击杀数
     const [done, setDone] = useState(false);       // 是否完成
     const [rewardClaimed, setRewardClaimed] = useState(false);   // 是否已领取奖励
-    const [hasJumpSkill, setHasJumpSkill] = useState(false);     // 是否解锁跳跃
+    const [jumpLevel, setJumpLevel] = useState(0);  // 0=无 2=双跳 4=四段跳
+    const hasJumpSkill = jumpLevel>0;
     const [message, setMessage] = useState(null);                // 中央提示消息
     const [noodleActive, setNoodleActive] = useState(false);      // 第二阶段：是否开始收集面
     const [noodleCollected, setNoodleCollected] = useState(0);    // 已收集面数
+    const [noodleDone,setNoodleDone]=useState(false);
+    const [noodleRewardClaimed,setNoodleRewardClaimed]=useState(false);
     const NOODLE_TARGET = 3;
+
+    // 公用提示函数
+    const showMessage = useCallback((msg, duration = 2000) => {
+        setMessage(msg);
+        if (duration > 0) {
+            setTimeout(() => setMessage(null), duration);
+        }
+    }, []);
 
     // 关闭书本时调用，开始任务
     const startQuest = () => {
         setActive(true);
-        setMessage("已接取任务：幽魂");
-        setTimeout(() => setMessage(null), 2000);
+        showMessage("已接取任务：幽魂", 2000);
     };
 
     // 玩家击杀幽魂时调用
@@ -34,10 +44,8 @@ export const QuestProvider = ({ children }) => {
     const claimReward = useCallback(() => {
         if (rewardClaimed) return;
         setRewardClaimed(true);
-        setHasJumpSkill(true);
-        setMessage("获得跳跃技能！按 E 键跳跃");
-        // 两秒后自动消失
-        setTimeout(() => setMessage(null), 2000);
+        setJumpLevel(2); // 双跳
+        showMessage("解锁双段跳！按 E 跳跃", 2000);
         // 开启第二阶段任务
         setNoodleActive(true);
     }, [rewardClaimed]);
@@ -48,15 +56,21 @@ export const QuestProvider = ({ children }) => {
         setNoodleCollected((prev) => {
             const next = prev + 1;
             if (next >= NOODLE_TARGET) {
-                setMessage("已收集三碗面，任务完成！");
-                // 三秒后提示消失
-                setTimeout(() => setMessage(null), 3000);
+                setNoodleDone(true);
+                showMessage("已收集三碗面，任务完成！", 3000);
             }
             return next;
         });
     }, [noodleActive]);
 
-    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, message, noodleActive, noodleCollected, addNoodle };
+    const claimNoodleReward = useCallback(() => {
+        if (!noodleDone || noodleRewardClaimed) return;
+        setNoodleRewardClaimed(true);
+        setJumpLevel(4);
+        showMessage("解锁四段跳！按 E 连跳",2000);
+    }, [noodleDone,noodleRewardClaimed]);
+
+    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, jumpLevel, message, noodleActive, noodleCollected, addNoodle, noodleDone, noodleRewardClaimed, claimNoodleReward, showMessage };
     return <QuestContext.Provider value={value}>{children}</QuestContext.Provider>;
 };
 
