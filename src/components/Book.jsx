@@ -69,19 +69,29 @@ export function Book({
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none',
+            background: 'rgba(0,0,0,0.5)', cursor: canClose ? 'pointer' : 'default',
+          }}
+          onClick={() => {
+            if (canClose) {
+              setRemoved(true);
+              onClose();
+            }
           }}>
             <div style={{
               background: '#f8f1d5',
-              padding: '32px 40px',
+              padding: '24px',
+              width: '90vw',
               maxWidth: '520px',
-              fontSize: '16px',
+              fontSize: '14px',
               lineHeight: '1.7',
               borderRadius: '6px',
               boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
               fontFamily: 'QianTuXianMo, "Times New Roman", serif',
               position: 'relative',
-            }}>
+              cursor: 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            >
               <pre style={{
                 margin: 0,
                 whiteSpace: 'pre-wrap',
@@ -112,13 +122,13 @@ export function Book({
                   }}
                   style={{
                     position: 'absolute',
-                    top: '-14px',
-                    right: '-14px',
+                    top: '10px',
+                    right: '10px',
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: '#333',
-                    color: '#fff',
+                    background: 'rgba(0,0,0,0.2)',
+                    color: '#000',
                     border: 'none',
                     fontSize: '20px',
                     lineHeight: '32px',

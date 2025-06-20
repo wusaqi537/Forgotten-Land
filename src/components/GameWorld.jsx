@@ -13,61 +13,52 @@ import { Door } from "./Door";
 import { PortalZone } from "./PortalZone";
 import { Rain } from "./Rain";
 import { WeatherButton } from "./WeatherButton";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
+import { useMultiplayer } from '../network/MultiplayerContext';
+import { RemotePlayer } from './RemotePlayer';
+import { RemoteGhost } from './RemoteGhost';
 
-export const GameWorld = ({ downgradedPerformance = false }) => {
-  const [balls, setballs] = useState([]);
+export const GameWorld = ({ downgradedPerformance = false, mobileJoystick, mobileFire, mobileJump }) => {
+  const { active, kills, done, startQuest, noodleActive, noodleCollected, clues } = useQuest();
+  const { myId, players, updateMyState, myProfile, bullets, sendBullet, removeBullet, ghosts } = useMultiplayer();
+
+  const [balls, setballs] = useState([]); // 本地子弹
   const [hits, setHits] = useState([]);
   const [paused, setPaused] = useState(false);
-  const { active, kills, done, startQuest, noodleActive, noodleCollected, clues } = useQuest();
   const [raining, setRaining] = useState(true);
   const [rainVisible, setRainVisible] = useState(true);
-  const rainAudioRef = useRef(null);
-  const sunnyAudioRef = useRef(null);
 
   const playerRef = useRef();
+  const rotationRef = useRef(0);
+  const animRef = useRef('Idle');
   const noodlePositions = [[-10, 5, 85], [0, 4, 300], [10, 5, 135]];
 
   const ambientRef = useRef();
   const dirRef = useRef();
 
+  const isHost = (() => {
+    const ids = Object.keys(players).concat(myId).filter(Boolean);
+    ids.sort();
+    return myId && ids[0] === myId;
+  })();
+
+  const { setFrameloop } = useThree();
+  // 强制开启持续渲染循环
   useEffect(() => {
-    const rainAudio = new Audio('/audios/下雨音乐.mp3');
-    rainAudio.loop = true;
-    rainAudio.volume = 0.5;
-    rainAudioRef.current = rainAudio;
+    setFrameloop('always');
+  }, [setFrameloop]);
 
-    const sunnyAudio = new Audio('/audios/晴天背景音.mp3');
-    sunnyAudio.loop = true;
-    sunnyAudio.volume = 0.5;
-    sunnyAudioRef.current = sunnyAudio;
-
-    if (raining) {
-      rainAudio.play().catch(() => {});
-    } else {
-      sunnyAudio.play().catch(() => {});
-    }
-
-    return () => {
-      rainAudio.pause();
-      sunnyAudio.pause();
-    };
-  }, []);
-
+  // 当任务状态变化时，广播给其他人
   useEffect(() => {
-    if (!rainAudioRef.current || !sunnyAudioRef.current) return;
-    if (raining) {
-      sunnyAudioRef.current.pause();
-      sunnyAudioRef.current.currentTime = 0;
-      rainAudioRef.current.play().catch(() => {});
-    } else {
-      rainAudioRef.current.pause();
-      rainAudioRef.current.currentTime = 0;
-      sunnyAudioRef.current.play().catch(() => {});
-    }
-  }, [raining]);
+    updateMyState({ questActive: active });
+  }, [active, updateMyState]);
 
-  useFrame((state, dt) => {
+  useFrame((_, dt) => {
+    // 每帧上报本地玩家位置
+    if (playerRef.current && myId) {
+      const pos = playerRef.current.translation();
+      updateMyState({ position: [pos.x, pos.y, pos.z], rotationY: rotationRef.current, animation: animRef.current });
+    }
     const targetAmbient = raining ? 0.3 : 0.9;
     if (ambientRef.current) {
       const cur = ambientRef.current.intensity;
@@ -95,10 +86,12 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
 
   const onFire = (ball) => {
     setballs((prev) => [...prev, ball]);
+    sendBullet(ball);
   };
 
   const onHit = (ballId, position) => {
     setballs((prev) => prev.filter((b) => b.id !== ballId));
+    removeBullet(ballId);
     setHits((prev) => [...prev, { id: `hit-${ballId}`, position }]);
   };
 
@@ -111,7 +104,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       {rainVisible && <Rain count={1500} area={40} speed={10} />}
       <Scene />
       <Book setPaused={setPaused} onClose={startQuest} />
-      <EnemySpawner playerRef={playerRef} active={active} raining={raining} />
+      {isHost && <EnemySpawner />}
       <HealthPack />
       {noodleActive && noodleCollected < 3 && noodlePositions.map((pos, i) => (
         <NoodleBowl key={i} position={pos} />
@@ -123,8 +116,26 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
         downgradedPerformance={downgradedPerformance}
         canAttack={active}
         playerRef={playerRef}
+        onRotationChange={(a)=>{rotationRef.current=a;}}
+        onAnimationChange={(anim)=>{animRef.current=anim;}}
+        initialProfile={myProfile}
+        onStateChange={(partial)=>{ updateMyState(partial); }}
+        myId={myId}
+        joystick={mobileJoystick}
+        mobileFire={mobileFire && active}
+        mobileJump={mobileJump}
       />
-      {balls.map((ball) => (
+      {/* 远程玩家 */}
+      {Object.entries(players).map(([id, s]) => (
+        id === myId ? null : (
+          <RemotePlayer key={id} id={id} position={s.position} rotationY={s.rotationY||0} animation={s.animation||'Idle'} health={s.health||120} profile={s.profile||{name:`玩家`,color:'#00ffff'}} />
+        )
+      ))}
+      {/* 远程幽魂（非房主渲染） */}
+      {!isHost && Object.values(ghosts).map((g) => (
+        <RemoteGhost key={g.id} ghost={g} />
+      ))}
+      {[...balls, ...bullets.filter(b=>b.player!==myId)].map((ball) => (
         <MagicBall
           key={ball.id}
           {...ball}

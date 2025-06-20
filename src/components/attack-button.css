@@ -1,0 +1,15 @@
+.attack-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 60px;
+  width: 80px;
+  height: 80px;
+  border-radius: 40px;
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 32px;
+  border: none;
+  touch-action: none;
+  user-select: none;
+} 

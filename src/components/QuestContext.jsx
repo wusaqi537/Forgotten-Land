@@ -19,6 +19,10 @@ export const QuestProvider = ({ children }) => {
     const [noodleRewardClaimed,setNoodleRewardClaimed]=useState(false);
     const NOODLE_TARGET = 3;
 
+    // 新增状态：是否在 NPC 附近，以及交互事件
+    const [isPlayerNearNPC, setIsPlayerNearNPC] = useState(false);
+    const [interactAction, setInteractAction] = useState(0);
+
     // 公用提示函数
     const showMessage = useCallback((msg, duration = 2000) => {
         setMessage(msg);
@@ -75,7 +79,7 @@ export const QuestProvider = ({ children }) => {
         showMessage("解锁四段跳！按 E 连跳",2000);
     }, [noodleDone,noodleRewardClaimed]);
 
-    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, jumpLevel, message, noodleActive, noodleCollected, addNoodle, noodleDone, noodleRewardClaimed, claimNoodleReward, showMessage, clues, addClue };
+    const value = { active, kills, done, startQuest, addKill, rewardClaimed, claimReward, hasJumpSkill, jumpLevel, message, noodleActive, noodleCollected, addNoodle, noodleDone, noodleRewardClaimed, claimNoodleReward, showMessage, clues, addClue, isPlayerNearNPC, setIsPlayerNearNPC, interactAction, setInteractAction };
     return <QuestContext.Provider value={value}>{children}</QuestContext.Provider>;
 };
 

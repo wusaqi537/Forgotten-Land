@@ -6,9 +6,8 @@ import { NewCharacter } from "./Character";
 import * as THREE from "three";
 import { useQuest } from "./QuestContext";
 
-const MOVEMENT_SPEED = 100;
+const MOVEMENT_SPEED = 20;   // 行走速度 (米/秒)
 const FIRE_RATE = 400;
-const JUMP_FORCE = 35;   // 跳跃冲量
 const JUMP_COOLDOWN = 300;
 // jumpLevel from context decides max jumps
 const MAX_HP = 120;   // 玩家最大生命值
@@ -26,16 +25,24 @@ const keyboardControls = {
 export const WEAPON_OFFSET = {
   x: -0.2,
   y: 1.4,
-  z: 0.8,
+  z: 1.5,
 };
 
 export const CharacterController = ({
   userPlayer = true,
   onFire = () => {},
+  onRotationChange = () => {},
+  onAnimationChange = () => {},
+  initialProfile = { name: '玩家', color: '#ffffff' },
+  onStateChange = () => {},
   paused = false,
   downgradedPerformance,
   canAttack,
   playerRef,
+  myId,
+  joystick: externalJoystickProp = null,
+  mobileFire = false,
+  mobileJump = false,
   ...props
 }) => {
   const group = useRef();
@@ -51,7 +58,7 @@ export const CharacterController = ({
   const [playerState, setPlayerState] = useState({
     health: MAX_HP,
     dead: false,
-    profile: { name: "Player", color: "#ffffff" },
+    profile: initialProfile,
     deaths: 0,
     kills: 0,
   });
@@ -62,11 +69,34 @@ export const CharacterController = ({
       setPlayerState((prev) => ({ ...prev, [key]: value })),
   };
 
-  const joystick = {
+  const joystick = externalJoystickProp || {
     angle: () => null,
     isJoystickPressed: () => false,
-    isPressed: () => false,
   };
+
+  // 设置动画并触发外部回调（避免重复发送）
+  const currentAnimRef = useRef("Idle");
+  const setAnim = (name) => {
+    if (currentAnimRef.current !== name) {
+      currentAnimRef.current = name;
+      setAnimation(name);
+      onAnimationChange(name);
+    }
+  };
+
+  // 可复用的跳跃函数
+  const tryJump = useCallback(() => {
+    if (jumpLevel > 0) {
+      const now = Date.now();
+      if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < jumpLevel) {
+        lastJump.current = now;
+        rigidbody.current.applyImpulse({ x: 0, y: 55, z: 0 }, true);
+        setAnim("Jump");
+        jumpCount.current += 1;
+        setTimeout(() => setAnim("Idle"), 600);
+      }
+    }
+  }, [jumpLevel, setAnim]);
 
   // 添加键盘事件监听
   useEffect(() => {
@@ -94,16 +124,7 @@ export const CharacterController = ({
           keyboardControls.fire = true;
           break;
         case 'KeyE':
-          if (jumpLevel>0) {
-            const now = Date.now();
-            if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < jumpLevel) {
-              lastJump.current = now;
-              rigidbody.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
-              setAnimation("Jump");
-              jumpCount.current += 1;
-              setTimeout(() => setAnimation("Idle"), 600);
-            }
-          }
+          tryJump();
           break;
       }
     };
@@ -139,7 +160,7 @@ export const CharacterController = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [userPlayer, jumpLevel]);
+  }, [userPlayer, jumpLevel, tryJump]);
 
   // 固定出生点位置（与 Scene.jsx 中 spawn_0 相同）
   useEffect(() => {
@@ -149,7 +170,7 @@ export const CharacterController = ({
       rigidbody.current.setLinvel({x:0,y:0,z:0}, true);
       rigidbody.current.setAngvel({x:0,y:0,z:0}, true);
     }
-  }, []);
+  }, [rigidbody.current]);
 
   // 提供回血函数，确保引用稳定
   const healPlayer = useCallback((amount = 10) => {
@@ -175,6 +196,16 @@ export const CharacterController = ({
     }
   }, [state.state.health]);
 
+  // 当血量变化时通知父级同步
+  useEffect(()=>{
+    onStateChange({ health: playerState.health });
+  },[playerState.health]);
+
+  // 首次加载同步 profile
+  useEffect(()=>{
+    onStateChange({ profile: playerState.profile });
+  },[]);
+
   useFrame((_, delta) => {
     if (paused) return; // 暂停时停止人物更新
 
@@ -197,7 +228,7 @@ export const CharacterController = ({
     }
 
     if (state.state.dead) {
-      setAnimation("Death");
+      setAnim("Death");
       return;
     }
 
@@ -212,52 +243,66 @@ export const CharacterController = ({
       if (keyboardControls.moveRight) moveX += 1;
 
       if (moveX !== 0 || moveZ !== 0) {
-        setAnimation("Run");
+        setAnim("Run");
         const angle = Math.atan2(moveX, moveZ);
         character.current.rotation.y = angle;
+        onRotationChange(angle);
 
-        const impulse = {
-          x: Math.sin(angle) * MOVEMENT_SPEED * delta,
-          y: 0,
-          z: Math.cos(angle) * MOVEMENT_SPEED * delta,
-        };
-
-        rigidbody.current.applyImpulse(impulse, true);
+        const vel = rigidbody.current.linvel();
+        rigidbody.current.setLinvel({
+          x: Math.sin(angle) * MOVEMENT_SPEED,
+          y: vel.y,
+          z: Math.cos(angle) * MOVEMENT_SPEED,
+        }, true);
       } else if (!joystick.isJoystickPressed()) {
-        setAnimation("Idle");
+        // 停止水平速度，保留竖直速度
+        const v = rigidbody.current.linvel();
+        rigidbody.current.setLinvel({ x: 0, y: v.y, z: 0 }, true);
+        setAnim("Idle");
       }
 
       // 处理射击；没任务就不能射
-      if (keyboardControls.fire && canAttack) {
-        setAnimation(moveX !== 0 || moveZ !== 0 ? "Run_Shoot" : "Idle_Shoot");
+      if ((keyboardControls.fire || mobileFire) && canAttack) {
+        setAnim(moveX !== 0 || moveZ !== 0 ? "Run_Shoot" : "Idle_Shoot");
         if (Date.now() - lastShoot.current > FIRE_RATE) {
           lastShoot.current = Date.now();
           const newBullet = {
-            id: "bullet-" + crypto.randomUUID(),
+            id: "bullet-" + (crypto.randomUUID?.() || (Date.now().toString(36)+Math.random().toString(36).slice(2))),
             position: vec3(rigidbody.current.translation()),
             angle: character.current.rotation.y,
-            player: "player",
+            player: myId || 'local',
           };
           onFire(newBullet);
         }
       }
     }
 
-    // 处理触摸输入
-    const angle = joystick.angle();
-    if (joystick.isJoystickPressed() && angle) {
-      setAnimation("Run");
-      character.current.rotation.y = angle;
+    // 处理移动端跳跃
+    if (mobileJump) {
+      tryJump();
+    }
 
-      const impulse = {
-        x: Math.sin(angle) * MOVEMENT_SPEED * delta,
-        y: 0,
-        z: Math.cos(angle) * MOVEMENT_SPEED * delta,
-      };
+    // 处理摇杆输入
+    if (joystick.isJoystickPressed()) {
+      const originalAngle = joystick.angle();
+      if (originalAngle !== null) {
+        setAnim("Run");
+        const correctedAngle = Math.PI - originalAngle;
+        character.current.rotation.y = correctedAngle;
+        onRotationChange(correctedAngle);
 
-      rigidbody.current.applyImpulse(impulse, true);
+        const vel = rigidbody.current.linvel();
+        rigidbody.current.setLinvel({
+          x: Math.sin(correctedAngle) * MOVEMENT_SPEED,
+          y: vel.y,
+          z: Math.cos(correctedAngle) * MOVEMENT_SPEED,
+        }, true);
+      }
     } else if (!keyboardControls.moveForward && !keyboardControls.moveBackward && !keyboardControls.moveLeft && !keyboardControls.moveRight) {
-      setAnimation("Idle");
+      // 停止水平速度，保留竖直速度
+      const v = rigidbody.current.linvel();
+      rigidbody.current.setLinvel({ x: 0, y: v.y, z: 0 }, true);
+      setAnim("Idle");
     }
 
     // 检测是否落地，重置跳跃次数
@@ -272,6 +317,11 @@ export const CharacterController = ({
       if (Math.abs(vel.y) < 0.01 ) {
         jumpCount.current = 0;
       }
+    }
+
+    // 如果外部还没拿到刚体引用，则兜底赋值
+    if (playerRef && !playerRef.current && rigidbody.current) {
+      playerRef.current = rigidbody.current;
     }
   });
 

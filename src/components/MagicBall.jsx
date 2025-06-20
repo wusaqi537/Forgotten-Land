@@ -2,9 +2,10 @@ import { RigidBody, vec3 } from "@react-three/rapier";
 import { useEffect, useRef } from "react";
 import { MeshStandardMaterial } from "three";
 import { WEAPON_OFFSET } from "./CharacterController";
+import { useFrame } from "@react-three/fiber";
 
 const BALL_SPEED = 20;
-const HEIGHT_OFFSET = 1; // 高度
+const HEIGHT_OFFSET = 1.2; // 稍高一点，避免落在地面
 
 const ballMaterial = new MeshStandardMaterial({
   color: "#7fd9ff",
@@ -45,7 +46,26 @@ export const MagicBall = ({ player, angle, position, onHit }) => {
       z: Math.cos(angle) * BALL_SPEED,
     };
     rigidbody.current.setLinvel(velocity, true);
+    if (rigidbody.current.setDamping) {
+      rigidbody.current.setDamping(0, 0);
+    } else {
+      rigidbody.current.setLinearDamping(0);
+      rigidbody.current.setAngularDamping(0);
+    }
+    // 在每帧保持恒速，避免数值衰减
+    rigidbody.current.userData._vel = velocity;
   }, []);
+
+  // 保持恒速
+  useFrame(() => {
+    if (rigidbody.current && rigidbody.current.isEnabled()) {
+      const v = rigidbody.current.linvel();
+      const target = rigidbody.current.userData?._vel;
+      if (target && (Math.abs(v.x - target.x) > 0.01 || Math.abs(v.z - target.z) > 0.01)) {
+        rigidbody.current.setLinvel(target, true);
+      }
+    }
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,7 +96,8 @@ export const MagicBall = ({ player, angle, position, onHit }) => {
           ref={rigidbody}
           gravityScale={0}
           onIntersectionEnter={(e) => {
-            if (e.other.rigidBody.userData?.type !== "magic" && !hasHit()) {
+            const otherType = e.other.rigidBody.userData?.type;
+            if (otherType !== "magic" && otherType !== "player" && !hasHit()) {
               markHit();
               rigidbody.current.setEnabled(false);
               onHit(vec3(rigidbody.current.translation()));

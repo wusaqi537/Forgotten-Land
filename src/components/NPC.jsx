@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { createPortal } from 'react-dom';
 import { useQuest } from './QuestContext';
 
+// Force reload
 export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
   const group = useRef();
   const { scene, animations } = useGLTF('/models/character2/scene.gltf');

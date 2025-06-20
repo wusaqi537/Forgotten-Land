@@ -1,0 +1,10 @@
+services:
+  playroom:
+    build: ./docker/playroom
+    container_name: playroom
+    restart: unless-stopped
+    environment:
+      - PORT=4000
+      - CORS=*
+    ports:
+      - "4000:4000" 
