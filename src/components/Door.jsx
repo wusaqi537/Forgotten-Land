@@ -5,7 +5,7 @@ import { useGLTF, Sparkles } from '@react-three/drei';
 const COLLIDER_SIZE = [1, 2, 0.25];
 
 export function Door({ position = [-25, 0, 360], scale = [1, 1, 1], visible = true }) {
-  const { scene } = useGLTF('/models/gate/scene.gltf');
+  const { scene } = useGLTF('models/gate/scene.gltf');
   if (!visible) return null;
 
   return (
@@ -28,4 +28,4 @@ export function Door({ position = [-25, 0, 360], scale = [1, 1, 1], visible = tr
   );
 }
 
-useGLTF.preload('/models/gate/scene.gltf'); 
+useGLTF.preload('models/gate/scene.gltf'); 
