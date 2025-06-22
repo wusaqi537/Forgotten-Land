@@ -7,7 +7,7 @@ import { useRef, useState, useEffect } from 'react';
 export function Book({
   position = [0, 0, 80],
   setPaused = () => {},
-  onClose   = () => {},
+  onClose = () => {},
 }) {
   const { scene } = useGLTF('models/book/scene.gltf');
   const group = useRef();
@@ -32,13 +32,18 @@ export function Book({
     }
   }, [collected]);
 
-  useEffect(()=>{
-    if(removed){ setPaused(false);} 
-  },[removed]);
+  useEffect(() => {
+    if (removed) {
+      setPaused(false);
+    }
+  }, [removed]);
 
-  if (collected && !canClose) {
-    // 在等待按钮可用期间暂停渲染书本
-  }
+  const handleClose = () => {
+    if (canClose) {
+      setRemoved(true);
+      onClose();
+    }
+  };
 
   return (
     <group position={position}>
@@ -66,27 +71,46 @@ export function Book({
       {/* 提示便签 */}
       {collected && !removed && (
         <Html fullscreen>
-          <div style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none',
-          }}>
-            <div style={{
-              background: '#f8f1d5',
-              padding: '32px 40px',
-              maxWidth: '520px',
-              fontSize: '16px',
-              lineHeight: '1.7',
-              borderRadius: '6px',
-              boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
-              fontFamily: 'QianTuXianMo, "Times New Roman", serif',
-              position: 'relative',
-            }}>
-              <pre style={{
-                margin: 0,
-                whiteSpace: 'pre-wrap',
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0, 0, 0, 0.5)',
+              cursor: canClose ? 'pointer' : 'default',
+            }}
+            onClick={handleClose}
+          >
+            <div
+              style={{
+                background: '#f8f1d5',
+                padding: '24px 32px',
+                width: '90%',
+                maxWidth: '480px',
+                fontSize: '14px',
+                lineHeight: '1.7',
+                borderRadius: '6px',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
                 fontFamily: 'QianTuXianMo, "Times New Roman", serif',
-              }}>{`当你看到这本书的时候，你并没有走出遗忘之地。
+                position: 'relative',
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                margin: '20px',
+              }}
+            >
+              <pre
+                style={{
+                  margin: 0,
+                  whiteSpace: 'pre-wrap',
+                  fontFamily: 'QianTuXianMo, "Times New Roman", serif',
+                }}
+              >
+                {`当你看到这本书的时候，你并没有走出遗忘之地。
 
 你只是在重复我曾做过的一切。
 
@@ -102,32 +126,29 @@ export function Book({
 
 读吧，然后遗忘，
 
-等待下一个"你"，翻开同样的第一页。`}</pre>
-              <p style={{ marginTop: '16px', fontStyle: 'italic', textAlign: 'right', fontFamily: 'QianTuXianMo, "Times New Roman", serif' }}>—— 我们，都是被困在循环里的，同一个幽魂。</p>
+等待下一个"你"，翻开同样的第一页。`}
+              </pre>
+              <p
+                style={{
+                  marginTop: '16px',
+                  fontStyle: 'italic',
+                  textAlign: 'right',
+                  fontFamily: 'QianTuXianMo, "Times New Roman", serif',
+                }}
+              >
+                —— 我们，都是被困在循环里的，同一个幽魂。
+              </p>
               {canClose && (
-                <button
-                  onClick={() => {
-                    setRemoved(true);
-                    onClose();
-                  }}
+                <div
                   style={{
-                    position: 'absolute',
-                    top: '-14px',
-                    right: '-14px',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: '#333',
-                    color: '#fff',
-                    border: 'none',
-                    fontSize: '20px',
-                    lineHeight: '32px',
+                    marginTop: '20px',
                     textAlign: 'center',
-                    cursor: 'pointer',
+                    color: '#666',
+                    fontSize: '12px',
                   }}
                 >
-                  ×
-                </button>
+                  点击任意位置关闭
+                </div>
               )}
             </div>
           </div>
