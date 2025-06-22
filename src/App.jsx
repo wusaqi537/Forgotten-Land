@@ -6,6 +6,8 @@ import { Suspense, useState } from "react";
 import { GameWorld } from "./components/GameWorld";
 import { Taskbar } from "./components/Taskbar";
 import { CenterTip } from "./components/CenterTip";
+import { MobileControlsProvider } from './contexts/MobileControlsContext';
+import MobileUI from './components/MobileUI';
 
 // -------------------------------
 // App 组件是整个 3D 游戏的入口：
@@ -18,7 +20,7 @@ function App() {
   // downgradedPerformance = true 时代表设备性能较差，我们将关掉后期效果等高开销项
   const [downgradedPerformance, setDowngradedPerformance] = useState(false);
   return (
-    <>
+    <MobileControlsProvider>
       {/* 任务栏固定在视口左上角 */}
       <Taskbar />
       {/* 技能提示居中显示 */}
@@ -68,8 +70,10 @@ function App() {
           </EffectComposer>
         )}
       </Canvas>
-    </>
+      <MobileUI />
+    </MobileControlsProvider>
   );
 }
+
 export default App;
 

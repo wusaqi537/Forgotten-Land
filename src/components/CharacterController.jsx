@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { NewCharacter } from "./Character";
 import * as THREE from "three";
 import { useQuest } from "./QuestContext";
+import { useMobileControls } from '../contexts/MobileControlsContext';
 
 const MOVEMENT_SPEED = 100;
 const FIRE_RATE = 400;
@@ -62,11 +63,7 @@ export const CharacterController = ({
       setPlayerState((prev) => ({ ...prev, [key]: value })),
   };
 
-  const joystick = {
-    angle: () => null,
-    isJoystickPressed: () => false,
-    isPressed: () => false,
-  };
+  const mobileControls = useMobileControls();
 
   // 添加键盘事件监听
   useEffect(() => {
@@ -176,9 +173,8 @@ export const CharacterController = ({
   }, [state.state.health]);
 
   useFrame((_, delta) => {
-    if (paused) return; // 暂停时停止人物更新
-
-    if (!rigidbody.current) return; // 刚体尚未创建
+    if (paused) return;
+    if (!rigidbody.current) return;
 
     // CAMERA FOLLOW
     if (controls.current) {
@@ -211,6 +207,12 @@ export const CharacterController = ({
       if (keyboardControls.moveLeft) moveX -= 1;
       if (keyboardControls.moveRight) moveX += 1;
 
+      // 处理移动端摇杆输入
+      if (mobileControls.joystick.moving && mobileControls.joystick.angle !== null) {
+        moveX = Math.sin(mobileControls.joystick.angle);
+        moveZ = Math.cos(mobileControls.joystick.angle);
+      }
+
       if (moveX !== 0 || moveZ !== 0) {
         setAnimation("Run");
         const angle = Math.atan2(moveX, moveZ);
@@ -223,12 +225,24 @@ export const CharacterController = ({
         };
 
         rigidbody.current.applyImpulse(impulse, true);
-      } else if (!joystick.isJoystickPressed()) {
+      } else {
         setAnimation("Idle");
       }
 
-      // 处理射击；没任务就不能射
-      if (keyboardControls.fire && canAttack) {
+      // 处理跳跃
+      if (mobileControls.jump && jumpLevel > 0) {
+        const now = Date.now();
+        if (now - lastJump.current > JUMP_COOLDOWN && rigidbody.current && jumpCount.current < jumpLevel) {
+          lastJump.current = now;
+          rigidbody.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true);
+          setAnimation("Jump");
+          jumpCount.current += 1;
+          setTimeout(() => setAnimation("Idle"), 600);
+        }
+      }
+
+      // 处理攻击
+      if ((keyboardControls.fire || mobileControls.attack) && canAttack) {
         setAnimation(moveX !== 0 || moveZ !== 0 ? "Run_Shoot" : "Idle_Shoot");
         if (Date.now() - lastShoot.current > FIRE_RATE) {
           lastShoot.current = Date.now();
@@ -241,23 +255,6 @@ export const CharacterController = ({
           onFire(newBullet);
         }
       }
-    }
-
-    // 处理触摸输入
-    const angle = joystick.angle();
-    if (joystick.isJoystickPressed() && angle) {
-      setAnimation("Run");
-      character.current.rotation.y = angle;
-
-      const impulse = {
-        x: Math.sin(angle) * MOVEMENT_SPEED * delta,
-        y: 0,
-        z: Math.cos(angle) * MOVEMENT_SPEED * delta,
-      };
-
-      rigidbody.current.applyImpulse(impulse, true);
-    } else if (!keyboardControls.moveForward && !keyboardControls.moveBackward && !keyboardControls.moveLeft && !keyboardControls.moveRight) {
-      setAnimation("Idle");
     }
 
     // 检测是否落地，重置跳跃次数
