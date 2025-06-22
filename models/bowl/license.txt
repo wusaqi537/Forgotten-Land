@@ -1,0 +1,11 @@
+Model Information:
+* title:	🍜Classic Ramen🍜
+* source:	https://sketchfab.com/3d-models/classic-ramen-734a5d864fc845918b5ab0a0a5b9d46c
+* author:	Polypus_yum (https://sketchfab.com/Polypus_yum)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "🍜Classic Ramen🍜" (https://sketchfab.com/3d-models/classic-ramen-734a5d864fc845918b5ab0a0a5b9d46c) by Polypus_yum (https://sketchfab.com/Polypus_yum) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fantasma Ghost Phantom
+* source:	https://sketchfab.com/3d-models/fantasma-ghost-phantom-ecc1f2ccf6fc43b48f791b06398b8cfe
+* author:	Marcos.Andre (https://sketchfab.com/Marcos.Andre)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fantasma Ghost Phantom" (https://sketchfab.com/3d-models/fantasma-ghost-phantom-ecc1f2ccf6fc43b48f791b06398b8cfe) by Marcos.Andre (https://sketchfab.com/Marcos.Andre) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
