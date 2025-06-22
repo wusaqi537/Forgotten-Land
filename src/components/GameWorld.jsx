@@ -22,6 +22,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   const { active, kills, done, startQuest, noodleActive, noodleCollected, clues } = useQuest();
   const [raining, setRaining] = useState(true);
   const [rainVisible, setRainVisible] = useState(true);
+  const [audioStarted, setAudioStarted] = useState(false);
   const rainAudioRef = useRef(null);
   const sunnyAudioRef = useRef(null);
 
@@ -42,12 +43,6 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
     sunnyAudio.volume = 0.5;
     sunnyAudioRef.current = sunnyAudio;
 
-    if (raining) {
-      rainAudio.play().catch(() => {});
-    } else {
-      sunnyAudio.play().catch(() => {});
-    }
-
     return () => {
       rainAudio.pause();
       sunnyAudio.pause();
@@ -55,7 +50,28 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   }, []);
 
   useEffect(() => {
-    if (!rainAudioRef.current || !sunnyAudioRef.current) return;
+    const handleFirstInteraction = () => {
+      if (!audioStarted && rainAudioRef.current && sunnyAudioRef.current) {
+        if (raining) {
+          rainAudioRef.current.play().catch(e => console.error("音频播放失败:", e));
+        } else {
+          sunnyAudioRef.current.play().catch(e => console.error("音频播放失败:", e));
+        }
+        setAudioStarted(true);
+      }
+    };
+
+    window.addEventListener('mousedown', handleFirstInteraction);
+    window.addEventListener('keydown', handleFirstInteraction);
+
+    return () => {
+      window.removeEventListener('mousedown', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, [audioStarted, raining]);
+
+  useEffect(() => {
+    if (!audioStarted || !rainAudioRef.current || !sunnyAudioRef.current) return;
     if (raining) {
       sunnyAudioRef.current.pause();
       sunnyAudioRef.current.currentTime = 0;
@@ -65,7 +81,7 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
       rainAudioRef.current.currentTime = 0;
       sunnyAudioRef.current.play().catch(() => {});
     }
-  }, [raining]);
+  }, [raining, audioStarted]);
 
   useFrame((state, dt) => {
     const targetAmbient = raining ? 0.3 : 0.9;
