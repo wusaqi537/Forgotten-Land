@@ -5,9 +5,9 @@ import { useGLTF } from "@react-three/drei";
 import { useQuest } from "./QuestContext";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 
-// 音效池
-const baseAudio = new Audio("/audios/回血.mp3");
+const baseAudio = new Audio("audios/回血.mp3");
 baseAudio.load();
+
 const playPickup = () => {
   const snd = baseAudio.cloneNode();
   snd.volume = 0.7;
@@ -19,7 +19,7 @@ export function NoodleBowl({ position = [0, 0, 0] }) {
   const [collected, setCollected] = useState(false);
   const rigid = useRef();
   const visual = useRef();
-  const { scene } = useGLTF("/models/bowl/scene.gltf");
+  const { scene } = useGLTF("models/bowl/scene.gltf");
   const bowlScene = useMemo(() => clone(scene), [scene]);
 
   // 起伏旋转动画
@@ -65,4 +65,4 @@ export function NoodleBowl({ position = [0, 0, 0] }) {
   );
 }
 
-useGLTF.preload("/models/bowl/scene.gltf"); 
+useGLTF.preload("models/bowl/scene.gltf"); 

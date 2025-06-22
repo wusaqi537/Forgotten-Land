@@ -32,12 +32,12 @@ export const GameWorld = ({ downgradedPerformance = false }) => {
   const dirRef = useRef();
 
   useEffect(() => {
-    const rainAudio = new Audio('/audios/下雨音乐.mp3');
+    const rainAudio = new Audio('audios/下雨音乐.mp3');
     rainAudio.loop = true;
     rainAudio.volume = 0.5;
     rainAudioRef.current = rainAudio;
 
-    const sunnyAudio = new Audio('/audios/晴天背景音.mp3');
+    const sunnyAudio = new Audio('audios/晴天背景音.mp3');
     sunnyAudio.loop = true;
     sunnyAudio.volume = 0.5;
     sunnyAudioRef.current = sunnyAudio;

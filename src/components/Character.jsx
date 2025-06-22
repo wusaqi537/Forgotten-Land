@@ -24,7 +24,7 @@ export function NewCharacter({
 }) {
   const group = useRef();
   const { scene, materials, animations } = useGLTF(
-    "/models/character_model/人物.gltf"
+    "models/character_model/人物.gltf"
   );
   
   // 克隆模型，避免多个实例共享同一个骨骼
@@ -82,4 +82,4 @@ export function NewCharacter({
   );
 }
 
-useGLTF.preload("/models/character_model/人物.gltf"); 
+useGLTF.preload("models/character_model/人物.gltf"); 

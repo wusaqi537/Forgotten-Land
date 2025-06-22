@@ -16,7 +16,7 @@ const MAX_HP = 10;
 
 export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead, raining = true }) {
   const { addKill } = useQuest();
-  const { scene, animations } = useGLTF("/models/ghost/scene.gltf");
+  const { scene, animations } = useGLTF("models/ghost/scene.gltf");
   const ghostScene = useMemo(() => clone(scene), [scene]);
   const rigid = useRef();          // RigidBody 引用
   const model = useRef();          // 模型组引用
@@ -167,4 +167,4 @@ export default function GhostFollow({ playerRef, spawnPos = [0,0,0], onDead, rai
   );
 }
 
-useGLTF.preload("/models/ghost/scene.gltf");
+useGLTF.preload("models/ghost/scene.gltf");

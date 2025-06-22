@@ -2,6 +2,7 @@ import { useGLTF } from "@react-three/drei";
 import { RigidBody, CuboidCollider } from "@react-three/rapier";
 import { useEffect } from "react";
 import { Water } from "./Water";
+import * as THREE from "three";
 
 export const Scene = () => {
   const map = useGLTF("models/new_map/scene.gltf");

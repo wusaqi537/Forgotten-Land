@@ -161,7 +161,7 @@ export const CharacterController = ({
 
   useEffect(() => {
     if (state.state.dead) {
-      const audio = new Audio("/audios/玩家死亡.mp3");
+      const audio = new Audio("audios/玩家死亡.mp3");
       audio.volume = 0.5;
       audio.play();
     }
@@ -169,7 +169,7 @@ export const CharacterController = ({
 
   useEffect(() => {
     if (state.state.health < MAX_HP) {
-      const audio = new Audio("/audios/玩家受伤.mp3");
+      const audio = new Audio("audios/玩家受伤.mp3");
       audio.volume = 0.4;
       audio.play();
     }

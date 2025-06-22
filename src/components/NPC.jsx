@@ -8,7 +8,7 @@ import { useQuest } from './QuestContext';
 
 export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
   const group = useRef();
-  const { scene, animations } = useGLTF('/models/character2/scene.gltf');
+  const { scene, animations } = useGLTF('models/character2/scene.gltf');
 
   // 克隆模型避免骨骼共享
   const clone = useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -111,4 +111,4 @@ export function NPC({ position = [0, 0, 150], scale = [1, 1, 1], playerRef }) {
   );
 }
 
-useGLTF.preload('/models/character2/scene.gltf'); 
+useGLTF.preload('models/character2/scene.gltf'); 

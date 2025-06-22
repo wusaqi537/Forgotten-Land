@@ -7,7 +7,7 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
  * 玩家踩到按钮时触发 onToggle 回调。
  */
 export function WeatherButton({ position = [0, 0, 300], scale = [1, 1, 1], onToggle = () => {}, cooldown = 5000 }) {
-  const { scene } = useGLTF('/models/Button/scene.gltf');
+  const { scene } = useGLTF('models/Button/scene.gltf');
   const toggleRef = useRef(onToggle);
   const lastTimeRef = useRef(0);
 
@@ -39,4 +39,4 @@ export function WeatherButton({ position = [0, 0, 300], scale = [1, 1, 1], onTog
   );
 }
 
-useGLTF.preload('/models/Button/scene.gltf'); 
+useGLTF.preload('models/Button/scene.gltf'); 

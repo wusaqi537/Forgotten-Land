@@ -5,7 +5,7 @@ import { useGLTF } from "@react-three/drei";
 import { HealEffect } from "./HealEffect";
 
 // -------- 音效池 --------
-const baseHealAudio = new Audio("/audios/回血.mp3");
+const baseHealAudio = new Audio("audios/回血.mp3");
 baseHealAudio.load();
 const playHealSound = () => {
   const snd = baseHealAudio.cloneNode();
@@ -17,7 +17,7 @@ export function HealthPack({ position = [13, 3, 82], heal = 10 }) {
   const [collected, setCollected] = useState(false);
   const [effect, setEffect] = useState(false);
   const rigid = useRef();
-  const { scene } = useGLTF("/models/BloodBag/scene.gltf");
+  const { scene } = useGLTF("models/BloodBag/scene.gltf");
   const visual = useRef();
   const basePos = position;
 
@@ -69,4 +69,4 @@ export function HealthPack({ position = [13, 3, 82], heal = 10 }) {
 }
 
 // 预加载血包模型
-useGLTF.preload("/models/BloodBag/scene.gltf"); 
+useGLTF.preload("models/BloodBag/scene.gltf"); 

@@ -13,8 +13,8 @@ const ballMaterial = new MeshStandardMaterial({
   toneMapped: false,
 });
 
-// 声音池
-const baseShotAudio = new Audio("/audios/发射法球.mp3");
+// Audio pool
+const baseShotAudio = new Audio("audios/发射法球.mp3");
 baseShotAudio.load();
 const playShotSound = () => {
   const snd = baseShotAudio.cloneNode();

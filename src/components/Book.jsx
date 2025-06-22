@@ -9,7 +9,7 @@ export function Book({
   setPaused = () => {},
   onClose   = () => {},
 }) {
-  const { scene } = useGLTF('/models/book/scene.gltf');
+  const { scene } = useGLTF('models/book/scene.gltf');
   const group = useRef();
   const [collected, setCollected] = useState(false);
   const [removed, setRemoved] = useState(false);
@@ -137,4 +137,4 @@ export function Book({
   );
 }
 
-useGLTF.preload('/models/book/scene.gltf'); 
+useGLTF.preload('models/book/scene.gltf'); 
