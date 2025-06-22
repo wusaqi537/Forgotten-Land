@@ -19,11 +19,24 @@
 }
 
 .jump-button {
-  bottom: 120px;
+  bottom: 140px;
   right: 120px;
 }
 
 .attack-button {
-  bottom: 120px;
-  right: 220px;
-} 
+  bottom: 40px;
+  right: 40px;
+}
+
+/* 竖屏时调整位置，避免重叠 */
+@media (orientation: portrait) {
+  .jump-button {
+    bottom: 140px;  /* 距离底部固定距离 */
+    right: 120px;
+  }
+  
+  .attack-button {
+    bottom: 40px;  /* 距离底部固定距离 */
+    right: 40px;
+  }
+}

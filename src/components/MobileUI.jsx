@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { VirtualJoystick } from './VirtualJoystick';
 import { ActionButton } from './ActionButton';
 import { useQuest } from './QuestContext';
+import { useProgress } from '@react-three/drei';
 
 export default function MobileUI() {
   const [isMobile, setIsMobile] = useState(false);
+  const { progress } = useProgress();
   const { active } = useQuest();
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function MobileUI() {
 
   return (
     <>
-      <VirtualJoystick />
+      {progress === 100 && <VirtualJoystick />}
       {active && (
         <>
           <ActionButton type="jump" />
